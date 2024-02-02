@@ -30,6 +30,11 @@ class User extends BaseModel implements
   protected $fillable = [
     'email',
     'password',
+    'username',
+    'image_id'
+  ];
+  protected $with = [
+    'avatar',
   ];
 
   /**
@@ -83,6 +88,14 @@ class User extends BaseModel implements
       DB::table('users_permissions')->whereIn('permission_id', $permissions->pluck('id'))->delete();
       Permission::destroy($permissions->pluck('id'));
     });
+  }
+  public function events()
+  {
+      return $this->belongsToMany(Event::class, 'events_users');
+  }
+  public function avatar()
+  {
+      return $this->belongsTo(Upload::class);
   }
 
   public function roles()
@@ -161,10 +174,14 @@ class User extends BaseModel implements
       'role' => 'required|exists:roles,name',
       'email' => 'required|email|unique:users,email',
       'password' => 'required|string',
+      'username' => 'required|unique:users,username',
+      'image_id' => 'required|exists:uploads,id',
     ];
     if ($id !== null) {
       $rules['email'] .= ',' . $id;
+      $rules['username'] .= ',' . $id;
       $rules['password'] = 'nullable|string';
+      $rules['image_id'] = 'nullable';
     }
     return $rules;
   }

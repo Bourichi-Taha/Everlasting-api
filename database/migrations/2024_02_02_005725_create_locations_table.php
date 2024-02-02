@@ -11,26 +11,26 @@ return new class extends Migration
      *
      * @return void
      */
-    public function up()
-    {
-        Schema::create('locations', function (Blueprint $table) {
-            $table->id();
-            $table->string('country');
-            $table->string('state_province');
-            $table->string('city');
-            $table->string('address');
-            $table->string('postal_code');
-            $table->timestamps();
-        });
-    }
+  public function up()
+  {
+      Schema::create('locations', function (Blueprint $table) {
+          $table->id();
+          $table->string('country');
+          $table->string('state_province');
+          $table->string('city');
+          $table->string('address');
+          $table->string('postal_code');
+          $table->timestamps();
+      });
+  }
 
     /**
      * Reverse the migrations.
      *
      * @return void
      */
-    public function down()
-    {
-        Schema::dropIfExists('locations');
-    }
+  public function down()
+  {
+      Schema::dropIfExists('locations');
+  }
 };
