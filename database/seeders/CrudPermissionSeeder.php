@@ -15,6 +15,20 @@ class CrudPermissionSeeder extends Seeder
    */
   public function run()
   {
+    $this->createScopePermissions('categories', ['create', 'read', 'update', 'delete']);
+    $this->createScopePermissions('locations', ['create', 'read', 'update', 'delete']);
+    $this->createScopePermissions('events', ['create', 'read', 'update', 'delete','cancel']);
+    $this->createScopePermissions('uploads', ['create', 'read', 'update', 'delete']);
+    $adminRole = Role::where('name', 'admin')->first();
+    $userRole = Role::where('name', 'user')->first();
+    $this->assignScopePermissionsToRole($adminRole, 'categories', ['create', 'read', 'update', 'delete']);
+    $this->assignScopePermissionsToRole($adminRole, 'events', ['create', 'read','cancel']);
+    $this->assignScopePermissionsToRole($adminRole, 'location', ['create', 'read','update', 'delete']);
+    $this->assignScopePermissionsToRole($adminRole, 'uploads', ['create', 'read', 'update', 'delete']);
+    $this->assignScopePermissionsToRole($userRole, 'uploads', ['create', 'read', 'update', 'delete']);
+    $this->assignScopePermissionsToRole($userRole, 'categories', ['read']);
+    $this->assignScopePermissionsToRole($userRole, 'events', ['read', 'create']);
+    $this->assignScopePermissionsToRole($userRole, 'locations', ['read', 'create','update']);
     /*
       Here, include project specific permissions. E.G.:
       $this->createScopePermissions('interests', ['create', 'read', 'update', 'delete', 'import', 'export']);
