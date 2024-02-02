@@ -4,7 +4,7 @@ namespace App\Models;
 
 class Location extends BaseModel
 {
-    public static $cacheKey = 'locations';
+  public static $cacheKey = 'locations';
 
     protected $fillable = [
         'country',
