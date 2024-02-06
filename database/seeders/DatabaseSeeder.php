@@ -21,7 +21,6 @@ class DatabaseSeeder extends Seeder
       $seeders = array_merge($seeders, [
         UserSeeder::class,
         CategorySeeder::class,
-        StatusSeeder::class,
       ]);
     }
     $this->call($seeders);

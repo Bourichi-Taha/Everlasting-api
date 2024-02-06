@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\StatusEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -21,10 +22,10 @@ return new class extends Migration
           $table->date('date');
           $table->time('start_time');
           $table->time('end_time');
+          $table->string('statusName')->default(StatusEnum::UPCOMING);
           $table->foreignId('image_id')->nullable()->constrained('uploads')->cascadeOnDelete();
           $table->foreignId('category_id')->constrained('categories')->cascadeOnDelete();
           $table->foreignId('owner_id')->constrained('users')->cascadeOnDelete();
-          $table->foreignId('status_id')->constrained('statuses')->cascadeOnDelete();
           $table->foreignId('location_id')->constrained('locations')->cascadeOnDelete();
           $table->timestamps();
       });

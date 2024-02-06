@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StatusEnum;
 use App\Models\Event;
 use App\Models\Permission;
-use App\Models\Status;
 use App\Notifications\CancelEventNotification;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
-use Log;
 
 class EventController extends CrudController
 {
@@ -25,24 +24,14 @@ class EventController extends CrudController
       $carbonDate = Carbon::parse($date);
       $request->merge(['owner_id' => $owner_id]);
       $request->merge(['date' => $carbonDate]);
-      $status = Status::where('name', 'Upcoming')->first();
-    if ($status) {
-        $request->merge(['status_id' => $status->id]);
-    } else {
-        $request->merge(['status_id' => 1]);
-    }
+      $request->merge(['statusName' => StatusEnum::UPCOMING]);
       return parent::createOne($request);
-  }
-  public function readOne($id, Request $request)
-  {
-
-      return parent::readOne($id, $request);
   }
 
   public function updateOne($id, Request $request)
   {
       $item = Event::find($id);
-    if ($item->statusName != 'Upcoming') {
+    if ($item->statusName != StatusEnum::UPCOMING) {
         return response()->json([
             'success' => false,
             'errors' => [__('events.future_event')]
@@ -53,20 +42,19 @@ class EventController extends CrudController
       $carbonDatetime = Carbon::parse($date);
       $request->merge(['owner_id' => $owner_id]);
       $request->merge(['date' => $carbonDatetime]);
-      $status = Status::where('name', 'Upcoming')->first();
-    if ($status) {
-        $request->merge(['status_id' => $status->id]);
-    } else {
-        $request->merge(['status_id' => 1]);
-    }
+      $request->merge(['statusName' => StatusEnum::UPCOMING]);
       return parent::updateOne($id, $request);
   }
   public function getUserEvents(Request $request)
   {
+    if (!$request->user()->hasPermission('events', 'read')) {
+        return response()->json([
+            'success' => false,
+            'errors' => [__('common.permission_denied')]
+        ]);
+    }
       $user = $request->user();
-      $status = Status::where('name', 'Canceled')->first();
-      Log::info($status->id);
-      $events = Event::where('owner_id', $user->id)->whereNot('status_id', '=', $status->id)->get();
+      $events = Event::where('owner_id', $user->id)->whereNot('statusName', StatusEnum::CANCELED)->get();
     if (!$events) {
         return [
             'success' => false,
@@ -80,8 +68,13 @@ class EventController extends CrudController
   }
   public function getAllRegistered(Request $request)
   {
-      $status = Status::where('name', 'Canceled')->first();
-      $events = $request->user()->events()->whereNot('status_id', '=', $status->id)->get();
+    if (!$request->user()->hasPermission('events', 'read')) {
+        return response()->json([
+            'success' => false,
+            'errors' => [__('common.permission_denied')]
+        ]);
+    }
+      $events = $request->user()->events()->whereNot('statusName', StatusEnum::CANCELED)->get();
     if (!$events) {
         return [
             'success' => false,
@@ -103,7 +96,7 @@ class EventController extends CrudController
             'errors' => [__(Str::of($this->table)->replace('_', '-') . '.not_found')]
         ];
     }
-    if ($event->statusName === 'Canceled') {
+    if ($event->statusName === StatusEnum::CANCELED) {
         return [
             'success' => false,
             'errors' => [__(Str::of($this->table)->replace('_', '-') . '.canceled')]
@@ -128,7 +121,7 @@ class EventController extends CrudController
             'errors' => [__(Str::of($this->table)->replace('_', '-') . '.not_found')]
         ];
     }
-    if ($event->statusName === 'Canceled') {
+    if ($event->statusName === StatusEnum::CANCELED) {
         return [
             'success' => false,
             'errors' => [__(Str::of($this->table)->replace('_', '-') . '.canceled')]
@@ -146,7 +139,6 @@ class EventController extends CrudController
             'errors' => [__('common.permission_denied')]
         ]);
     }
-      $status = Status::where('name', 'Canceled')->first();
       $event = Event::find($id);
     if (!$event) {
         return [
@@ -160,11 +152,21 @@ class EventController extends CrudController
     foreach ($users as $user) {
         $user->notify(new CancelEventNotification($event->name, $user->username));
     }
-      $event->status_id = $status->id;
+      $event->statusName = StatusEnum::CANCELED;
       $event->save();
       $permissions = Permission::where('name', 'events.' . $event->id . '.cancel')->orWhere('name', 'events.' . $event->id . '.update')->get();
       DB::table('users_permissions')->whereIn('permission_id', $permissions->pluck('id'))->delete();
       Permission::destroy($permissions->pluck('id'));
       return ['success' => true, 'message' => __('events.canceled')];
+  }
+
+  public function afterReadAll($items, $user)
+  {
+    if (!$user->hasRole('admin')) {
+        return $items->filter(function ($event) {
+            return in_array($event->statusName, [StatusEnum::TODAY, StatusEnum::UPCOMING]);
+        })->values();
+    }
+      return $items;
   }
 }

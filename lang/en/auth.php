@@ -15,6 +15,7 @@ return [
 
   'failed' => 'These credentials do not match our records.',
   'email_already_exists' => 'This email already exists.',
+  'username_already_exists' => 'This username already exists.',
   'login_success' => 'Login success.',
   'logout_success' => 'Logout success.',
   'register_success' => 'Register success.',

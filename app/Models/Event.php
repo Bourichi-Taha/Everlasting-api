@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Notifications\CancelEventNotification;
+use Carbon\Carbon;
 use DB;
 use Log;
 
@@ -20,8 +21,8 @@ class Event extends BaseModel
         'image_id',
         'category_id',
         'owner_id',
-        'status_id',
         'location_id',
+        'statusName',
     ];
 
     protected $with = [
@@ -36,9 +37,9 @@ class Event extends BaseModel
 
     protected $appends = [
         'categoryName',
-        'statusName',
         'registeredNumber',
-        'registeredIds'
+        'registeredIds',
+        'duration'
     ];
 
     public function getCategoryNameAttribute()
@@ -46,11 +47,26 @@ class Event extends BaseModel
         $categoryName = $this->category->name;
         return $categoryName;
     }
-    public function getStatusNameAttribute()
+    public function getDurationAttribute()
     {
-        $statusName = $this->status->name;
-        return $statusName;
+      try {
+          $startTime = Carbon::createFromFormat('H:i:s', $this->start_time);
+          $endTime = Carbon::createFromFormat('H:i:s', $this->end_time);
+
+          // Check if both times are valid
+        if ($startTime && $endTime) {
+            $durationInSeconds = $endTime->diffInSeconds($startTime);
+            $formattedDuration = gmdate('H:i:s', $durationInSeconds);
+            return $formattedDuration;
+        } else {
+            return 'Invalid time format';
+        }
+      } catch (\Exception $e) {
+          // Handle any exceptions that might occur
+          return 'Error: ' . $e->getMessage();
+      }
     }
+
     public function getRegisteredNumberAttribute()
     {
         $registered = $this->registereds()->get()->count();
@@ -89,10 +105,7 @@ class Event extends BaseModel
     {
         return $this->belongsTo(Location::class);
     }
-    public function status()
-    {
-        return $this->belongsTo(Status::class);
-    }
+
 
 
     public function owner()
@@ -124,16 +137,15 @@ class Event extends BaseModel
         $id = $id ?? request()->route('id');
         $rules = [
             'name' => 'required|unique:events,name',
-            'location' => 'required',
             'description' => 'required',
             'max_num_participants' => 'required|numeric|integer|min:1',
             'date' => 'required|date',
-            'start_time' => 'required|time',
-            'end_time' => 'required|time',
+            'start_time' => 'required|string',
+            'statusName' => 'nullable|string',
+            'end_time' => 'required|string',
             'category_id' => 'required|exists:categories,id',
             'owner_id' => 'required|exists:users,id',
             'image_id' => 'required|exists:uploads,id',
-            'status_id' => 'required|exists:statuses,id',
             'location_id' => 'required|exists:locations,id',
         ];
         if ($id !== null) {

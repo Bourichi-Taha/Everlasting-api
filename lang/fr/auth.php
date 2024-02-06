@@ -15,6 +15,7 @@ return [
 
   'failed' => 'Nom d\'utilisateur ou mot de passe incorrect.',
   'email_already_exists' => 'L\'adresse email est déjà utilisée.',
+  'username_already_exists' => 'Le nom d\'utilisateur est déjà utilisée.',
   'login_success' => 'Vous êtes connecté.',
   'logout_success' => 'Vous avez été déconnecté.',
   'register_success' => 'Vous êtes enregistré.',

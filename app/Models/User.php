@@ -34,7 +34,7 @@ class User extends BaseModel implements
     'image_id'
   ];
   protected $with = [
-    'avatar',
+    'avatar'
   ];
 
   /**
@@ -60,7 +60,7 @@ class User extends BaseModel implements
 
   protected $appends = [
     'rolesNames',
-    'permissionsNames'
+    'permissionsNames',
   ];
 
   public function getRolesNamesAttribute()
@@ -95,7 +95,7 @@ class User extends BaseModel implements
   }
   public function avatar()
   {
-      return $this->belongsTo(Upload::class);
+    return $this->belongsTo(Upload::class, 'image_id');
   }
 
   public function roles()

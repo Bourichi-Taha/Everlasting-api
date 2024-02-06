@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Log;
 
 abstract class CrudController extends Controller
 {
@@ -57,17 +58,7 @@ abstract class CrudController extends Controller
       }
     }
 
-    // Retrieve item from cache if exists, otherwise retrieve from database
-    if (property_exists($this->modelClass, 'cacheKey')) {
-      $cacheKey = $this->modelClass::$cacheKey;
-      if (!Cache::has($cacheKey)) {
-        $items = $this->model()->all();
-        Cache::put($cacheKey, $items);
-      } else {
-        $items = Cache::get($cacheKey);
-      }
-    }
-    $item = $items->firstWhere('id', $id);
+    $item = $this->model()->find($id);
 
     if (!$item) {
       return response()->json([
@@ -99,16 +90,8 @@ abstract class CrudController extends Controller
       }
     }
 
-    // Retrieve all items from cache if exists, otherwise retrieve from database
-    if (property_exists($this->modelClass, 'cacheKey')) {
-      $cacheKey = $this->modelClass::$cacheKey;
-      if (!Cache::has($cacheKey)) {
-        $items = $this->model()->all();
-        Cache::put($cacheKey, $items);
-      } else {
-        $items = Cache::get($cacheKey);
-      }
-    }
+    $items = $this->model()->all();
+
 
     // If user has permission to read own items only, then filter the items
     if (!$user->hasPermission($this->table, 'read')) {
@@ -118,7 +101,7 @@ abstract class CrudController extends Controller
     }
 
     if (method_exists($this, 'afterReadAll')) {
-      $this->afterReadAll($items);
+      $items = $this->afterReadAll($items, $user);
     }
 
     return response()->json([

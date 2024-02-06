@@ -23,7 +23,7 @@ class CrudPermissionSeeder extends Seeder
     $userRole = Role::where('name', 'user')->first();
     $this->assignScopePermissionsToRole($adminRole, 'categories', ['create', 'read', 'update', 'delete']);
     $this->assignScopePermissionsToRole($adminRole, 'events', ['create', 'read','cancel']);
-    $this->assignScopePermissionsToRole($adminRole, 'location', ['create', 'read','update', 'delete']);
+    $this->assignScopePermissionsToRole($adminRole, 'locations', ['create', 'read','update', 'delete']);
     $this->assignScopePermissionsToRole($adminRole, 'uploads', ['create', 'read', 'update', 'delete']);
     $this->assignScopePermissionsToRole($userRole, 'uploads', ['create', 'read', 'update', 'delete']);
     $this->assignScopePermissionsToRole($userRole, 'categories', ['read']);

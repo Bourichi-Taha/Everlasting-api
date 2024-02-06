@@ -23,11 +23,11 @@ class Location extends BaseModel
     {
         $id = $id ?? request()->route('id');
         $rules = [
-            'country' => 'required',
-            'city' => 'required',
-            'state_province' => 'required',
-            'address' => 'required',
-            'postal_code' => 'required',
+            'country' => 'required|string',
+            'city' => 'required|string',
+            'state_province' => 'string|nullable',
+            'address' => 'required|string',
+            'postal_code' => 'required|string',
         ];
         return $rules;
     }
